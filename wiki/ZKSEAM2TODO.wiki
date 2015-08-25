@@ -1,0 +1,229 @@
+#summary a demo page, that shows how to do a simple todo-list with zkseam2
+<wiki:toc max_depth="2" />
+= Introduction =
+I will shows how to use zkseam2 binding zul with seam component as a controller and use JPA entityManager to store entity in this demo. <br/>
+
+First at all, I assume you already know how to play both zk and seam. Please go the zk official site to seam official site to learn how to use them respectively if you don't know them. <br/>
+
+This demo is base on a todo list demo in [http://docs.zkoss.org/wiki/Tutorial ZK Tutorial], but I change the controller to a seam component and use JPA to persist the entity. <br/>
+
+In this demo, I will not bind any ZK component into Seam controller, which means this controller handles the data and action only, so it will be easy to rewrite this component to a controller of another UI framework or in test case.
+
+* This demo and configurion are running base on JBoss application server*
+
+== Configuration of JPA==
+In this demo I use the simplest in memory db, HSQL. Following is the data source file, zkseam-ds.xml. you have to deploy this file into your jboss application.
+{{{
+<datasources>
+   <local-tx-datasource>
+      <jndi-name>zkseamDatasource</jndi-name>
+      <use-java-context>true</use-java-context>
+      <connection-url>jdbc:hsqldb:mem:zkseam</connection-url>
+      <driver-class>org.hsqldb.jdbcDriver</driver-class>
+      <user-name>sa</user-name>
+      <password></password>
+   </local-tx-datasource>
+</datasources>
+}}}
+
+And, you have to configure JPA persistence.xml (in META-INF) file that uses this data source.
+{{{
+   <persistence-unit name="zkseam" transaction-type="JTA">
+      <provider>org.hibernate.ejb.HibernatePersistence</provider>
+      <jta-data-source>java:/zkseamDatasource</jta-data-source>
+      <properties>
+         <property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect"/>
+         <property name="hibernate.hbm2ddl.auto" value="update"/>
+         <property name="hibernate.show_sql" value="true"/>
+         <property name="hibernate.format_sql" value="true"/>
+         <!-- Only relevant if Seam is loading the persistence unit (Java SE bootstrap) -->
+         <property name="hibernate.transaction.manager_lookup_class" value="org.hibernate.transaction.JBossTransactionManagerLookup"/>
+      </properties>
+   </persistence-unit>
+}}}
+
+== Configuration of Seam component==
+Configure entityManager in Seam components.xml as following
+{{{
+    <persistence:entity-manager-factory name="entityManagerFactory"
+        persistence-unit-name="zkseam" />
+    <persistence:managed-persistence-context name="entityManager" auto-create="true"
+        scope="event" entity-manager-factory="#{entityManagerFactory}" />
+}}}
+With this configuration, in Seam runtime, you can get EntityManager by name "entityManager".
+
+In this demo, I also use the i18n feature, you have to load i18n resource by add following config in to components.xml.
+{{{
+    <core:resource-loader>
+        <core:bundle-names>
+            <value>messages</value>
+            <value>app_messages</value>
+        </core:bundle-names>
+    </core:resource-loader>
+}}}
+And, put the app_messages.properties to the root of classes (to the source root in you project usually).
+{{{
+label.TodoTitle=Todo list
+label.Item=Item
+label.Priority=Priority
+label.Date=Date
+btn.Add=Add
+btn.Update=Update
+btn.Delete=Delete
+}}}
+== Entity and DAO ==
+A simple TodoEvent entity
+{{{
+@Entity(name="TodoEvent")
+public class TodoEvent {
+    @Id
+    @GeneratedValue
+    private Long id;
+    private String name;
+    private int priority;
+    private Date date;
+
+    public TodoEvent() {
+    }
+
+    public TodoEvent(String name, int priority, Date date) {
+        this.name = name;
+        this.priority = priority;
+        this.date = date;
+    }
+
+    //skipped geter and setter...
+}
+}}}
+And, I always create DAO to centralize the control entity. In Seam, a DAO is usually a event scope Seam component and use _@In_ to inject a Entity Manager. I also create a short cut method to get a DAO by _instance()_
+{{{
+@Name("iss.zkseam.todoEventDao")
+@Scope(ScopeType.EVENT)
+@AutoCreate
+public class TodoEventDAO {
+    
+    @Logger
+    Log log;
+    
+    @In("entityManager")
+    EntityManager em;
+    
+    public List<TodoEvent> findAll(){
+        return em.createQuery("SELECT t FROM TodoEvent t").getResultList();
+    } 
+    public void delete(TodoEvent evt){
+        log.debug("remove #0",evt.getName());
+        em.remove(em.merge(evt));
+    } 
+    public void insert(TodoEvent evt){
+        log.debug("persist #0",evt.getName());
+        em.persist(evt);        
+    } 
+    public TodoEvent update(TodoEvent evt){
+        log.debug("merge #0",evt.getName());
+        return (TodoEvent)em.merge(evt);
+    }
+    public void refresh(TodoEvent evt){
+        log.debug("refresh #0",evt.getName());
+        em.refresh(evt);
+    }
+    public static TodoEventDAO instance(){
+        return (TodoEventDAO)Component.getInstance(TodoEventDAO.class,ScopeType.EVENT);
+    }
+}
+}}}
+
+== UI Controller==
+A Seam UI controller in ZK is usually scoped in CONVERSATION (so the data can be alive with ZK desktop), to link Seam conversation scope with ZK deskotp I use call _DesktopConversation.begin()_ in the Seam component creation method(method that annotated by _@Create_).  The DAO are injected automatically by @In. 
+{{{
+@Name("todoCtrl")
+@Scope(ScopeType.CONVERSATION)
+public class SeamTodoEventController {
+
+    @In("iss.zkseam.todoEventDao")
+    TodoEventDAO evtDao;
+    
+    TodoEvent current = new TodoEvent();
+    
+    @Create
+    public void create(){
+        //begin conversation when component initialing
+        DesktopConversation.begin();
+    }
+
+    public TodoEvent getCurrent() {
+        return current;
+    }
+
+    public void setCurrent(TodoEvent current) {
+        this.current = current;
+    }
+    
+    public List getAllEvents() {
+        return evtDao.findAll();
+    }
+    public void addEvent() {
+        TodoEvent newEvt = new TodoEvent(current.getName(),current.getPriority(),current.getDate());
+        evtDao.insert(newEvt);
+    }
+
+    public void updateEvent() {
+        if(current.getId()!=null){
+            evtDao.update(current);
+        }
+    }
+    public void deleteEvent() {
+        if(current.getId()!=null){
+            evtDao.delete(current);
+            current = new TodoEvent();
+        }
+    }
+}
+}}}
+== UI - zul ==
+The finaly part, by zkseam2, in zul, you can bind ZK variable to Seam component directly (todoCtrl, in this demo) and there is a _AnnotateActionBinderInit_ helps zul to bind ZK event to Seam component's method.
+{{{
+<?init class="org.zkoss.zkplus.databind.AnnotateDataBinderInit"?>
+<?init class="com.infinitiessoft.zkseam.zk.AnnotateActionBinderInit"?>
+<zk xmlns="http://www.zkoss.org/2005/zul">
+    <window id="win" title="${messages['label.TodoTitle']}" width="800px" border="normal">
+        <listbox id="box" multiple="true" rows="10"
+            model="@{todoCtrl.allEvents, load-after='add.onClick, delete.onClick, update.onClick'}" selectedItem="@{todoCtrl.current}">
+            <listhead>
+                <listheader label="${messages['label.Item']}" />
+                <listheader label="${messages['label.Priority']}" width="50px" />
+                <listheader label="${messages['label.Date']}" width="90px" />
+            </listhead>
+            <listitem self="@{each='event'}" value="@{event}">
+                <listcell label="@{event.name}" />
+                <listcell label="@{event.priority}" />
+                <listcell label="@{event.date}" />
+            </listitem>
+        </listbox>
+        <groupbox>
+            <caption label="${messages['Event']}" />
+            ${messages['label.Item']}:
+            <textbox id="name" cols="25" value="@{todoCtrl.current.name, save-when='add.onClick, update.onClick'}" />
+            ${messages['label.Priority']}:
+            <intbox id="priority" cols="1" value="@{todoCtrl.current.priority, save-when='add.onClick, update.onClick'}" />
+            ${messages['label.Date']}:
+            <datebox id="date" cols="8" value="@{todoCtrl.current.date, save-when='add.onClick, update.onClick'}" />
+            <button id="add" label="${messages['btn.Add']}" width="4em" height="2em" onClick="@{action(todoCtrl.addEvent)}" />
+            <button id="update" label="${messages['btn.Update']}" width="5em" height="2em" onClick="@{action(todoCtrl.updateEvent)}" />
+            <button id="delete" label="${messages['btn.Delete']}" width="5em" height="2em" onClick="@{action(todoCtrl.deleteEvent)}" />
+        </groupbox>
+    </window>
+</zk>
+}}}
+The action binding annotation is very easy. 
+ * @{action(_action_expression_)}
+ * only for ZK component's event, such as onClick,onChange
+You can alos see I use {{{${messages['message_key']}}}} to redner labels, _messages_ it a default Seam component that loads i18n messages depends on current session's local.
+
+=Summary=
+
+Both ZK and Seam are great framework in side of UI and Context Management and this demo shows the possibility of binding ZK with Seam by zkseam2. <br/>
+
+In this demo, as you can see, before the zul file, you don't need to know the UI part is ZK or JSF ( OK, the DesktopConversation is hard binding to ZK, but it is possible to remove this binding, In zkseam2, there is a auto binding conversation and desktop feature, if enable it, then you can remove this hard binding). <br/>
+
+But, for a real application, It is not easy to remove the binding between controller and UI. You have to show message, controll UI effect,  show different UI depends on data. Althoug It is not easy to remove the dependence , I think it is still usefull that zkseam can help you to access Seam frame work in ZK.

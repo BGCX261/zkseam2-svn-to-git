@@ -1,0 +1,43 @@
+<zk xmlns="http://www.zkoss.org/2005/zul">
+    <window title="My First window" border="normal">
+        <vbox>
+            <hbox>
+                <button onClick='outputScopedVariable()' label="Show Scoped Object" />
+                <button onClick='beginConversation()' label="Begin Conversation" />
+                <button onClick='endConversation()' label="End Conversation" />
+            </hbox>
+            <textbox id="tb" multiline="true" rows="20" cols="100"  />
+        </vbox>
+        <zscript>
+        import java.util.StringBuilder;
+        import com.infinitiessoft.zkseam.DesktopConversation;
+        import org.jboss.seam.core.Conversation;
+        import com.infinitiessoft.zkseam.test.UserEntity;
+        
+        
+        void outputScopedVariable(){
+            StringBuilder sb = new StringBuilder();
+            sb.append("time >>").append(""+new java.util.Date()).append("\n");
+            sb.append("Event >>").append(""+eventObject).append("\n");
+            sb.append("Session >>").append(""+sessionObject).append("\n");
+            sb.append("Conversation >>").append(""+conversationObject).append("\n");
+            sb.append("Application >>").append(""+applicationObject).append("\n");
+            sb.append("EntityManager >>").append(""+entityManager).append("\n");
+            
+            sb.append("Conversation >>").append(""+Conversation.instance().getId()).append("\n");
+            tb.setValue(sb.toString());
+        }
+        
+        void beginConversation(){
+            DesktopConversation.begin(desktop);
+        }
+        
+        void endConversation(){
+            DesktopConversation.end();
+        }
+        
+        outputScopedVariable();
+        
+        </zscript>
+    </window>
+</zk>

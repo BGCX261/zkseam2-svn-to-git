@@ -1,0 +1,117 @@
+<project name="zkseam2" basedir=".." default="build.project">
+
+	<description>
+	</description>
+
+	<!-- ================== -->
+	<!-- === PROPERTIES === -->
+	<!-- ================== -->
+	<property name="prjdir" value="${basedir}/zkseam2" />
+	<property name="src_folder" value="${prjdir}/src/main" />
+	<property name="jarname" value="zkseam2.jar" />
+	<property name="srcjarname" value="zkseam2-sources.jar" />
+	<property name="warname" value="zkseam2.war" />
+	<property name="warsrc_folder" value="${prjdir}/src/demo" />
+
+
+	<property name="antbuild_folder" value="${prjdir}/antbuild" />
+	<property name="dist_folder" value="${basedir}/dist" />
+
+	<property file="${basedir}/env.properties" />
+
+	<!-- ============= -->
+	<!-- === CLEAN === -->
+	<!-- ============= -->
+	<target name="clean" description="removes all generated files">
+		<delete file="${dist_folder}/${jarname}" />
+		<delete dir="${antbuild_folder}" />
+	</target>
+
+	<target name="setup" depends="build.time,declare.tasks">
+		<mkdir dir="${antbuild_folder}" />
+		<mkdir dir="${antbuild_folder}/classes" />
+		<mkdir dir="${antbuild_folder}/classes_demo" />
+	</target>
+	<target name="build.time" unless="build.time">
+		<tstamp>
+			<format property="build.time" pattern="yyyyMMddhhmm" />
+		</tstamp>
+	</target>
+	<target name="declare.tasks">
+	</target>
+
+	<!-- ================= -->
+	<!-- === CLASSPATH === -->
+	<!-- ================= -->
+	<path id="classpath">
+		<fileset dir="${prjdir}/lib" includes="**/*.jar" />
+		<fileset dir="${prjdir}/WebContent/WEB-INF/lib" includes="*.jar" />
+		<fileset dir="${dist_folder}" includes="*.jar" />
+	</path>
+
+	<target name="build.project" depends="setup">
+		<javac destdir="${antbuild_folder}/classes" debug="true" source="1.5" target="1.5">
+			<src path="${src_folder}" />
+			<classpath refid="classpath" />
+		</javac>
+		<copy tofile="${antbuild_folder}/MANIFEST.MF" file="${src_folder}/META-INF/MANIFEST.MF" />
+		<manifest file="${antbuild_folder}/MANIFEST.MF" mode="update">
+			<section name="${iss.manifest.section}">
+				<attribute name="ISS-Module" value="ISS-ZKSeam2" />
+				<attribute name="ISS-Module-Version" value="${iss.zkseam2.version}" />
+				<attribute name="ISS-Build-Time" value="${build.time}" />
+			</section>
+		</manifest>
+		<jar destfile="${dist_folder}/${jarname}" manifest="${antbuild_folder}/MANIFEST.MF">
+			<fileset dir="${antbuild_folder}/classes" />
+			<fileset dir="${src_folder}">
+				<exclude name="**/*.java" />
+				<exclude name="**/.svn*" />
+				<exclude name="**/.*" />
+			</fileset>
+		</jar>
+		<jar destfile="${dist_folder}/${srcjarname}" manifest="${antbuild_folder}/MANIFEST.MF">
+			<fileset dir="${src_folder}">
+				<include name="**/*.java" />
+				<exclude name="**/.svn*" />
+				<exclude name="**/.*" />
+			</fileset>
+		</jar>
+
+		<!--build demo war-->
+		<javac destdir="${antbuild_folder}/classes_demo" debug="true" source="1.5" target="1.5">
+			<src path="${warsrc_folder}" />
+			<classpath refid="classpath" />
+		</javac>
+		<war destfile="${dist_folder}/${warname}" webxml="${prjdir}/WebContent/WEB-INF/web.xml" manifest="${antbuild_folder}/MANIFEST.MF">
+			<fileset dir="${prjdir}/WebContent">
+				<exclude name="**/.*" />
+			</fileset>
+			<classes dir="${antbuild_folder}/classes_demo">
+				<include name="**/*" />
+			</classes>
+			<classes dir="${warsrc_folder}">
+				<include name="**/*" />
+				<exclude name="**/.svn*" />
+				<exclude name="**/.*" />
+			</classes>
+			<lib dir="${dist_folder}">
+				<include name="${jarname}" />
+			</lib>
+			<lib dir="${prjdir}/lib/war">
+				<include name="**/*.jar" />
+			</lib>
+		</war>
+		<copy todir="${dist_folder}" file="${prjdir}/resources/zkseam2-ds.xml" />
+
+		<zip destfile="${dist_folder}/zkseam2_demo.zip">
+			<fileset dir="${dist_folder}" >
+				<include name="zkseam2.war" />
+				<include name="zkseam2-ds.xml" />
+			</fileset>
+		</zip>
+
+	</target>
+	<target name="rebuild.project" depends="clean,build.project" />
+
+</project>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zk>
+    <system-config>
+        <disable-event-thread />
+    </system-config>
+    <listener>
+        <listener-class>com.infinitiessoft.zkseam.zk.IntegrationListener</listener-class>
+    </listener>
+</zk>

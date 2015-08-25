@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main"/>
+	<classpathentry kind="src" path="src/demo"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
+	<classpathentry kind="lib" path="lib/app/ejb-api.jar"/>
+	<classpathentry kind="lib" path="lib/app/ejb3-persistence.jar"/>
+	<classpathentry kind="lib" path="lib/app/hibernate-validator.jar"/>
+	<classpathentry kind="lib" path="lib/app/servlet-api.jar"/>
+	<classpathentry kind="output" path="build/classes"/>
+</classpath>

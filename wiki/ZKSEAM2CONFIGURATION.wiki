@@ -1,0 +1,39 @@
+#summary Shows how to configure zkseam2
+== Prerequisite ==
+Before you configure zkseam2, you have to config your project correctly both for zk and seam2. <br/>
+
+To know how to configure zk, [http://docs.zkoss.org/wiki/QuickStart_Guide check here] <br/>
+To know how to configure seam2, [http://www.redhat.com/docs/manuals/jboss/jboss-eap-4.2/doc/seam/Seam_Reference_Guide/ check here] <br/>
+
+It is not easy to configure seam2 by hand. If you are creating a new project, I suggest you create seam2 project by seam-gen or jboss tools for Eclpise then configure it for zk.
+
+
+== Steps ==
+ * Copy zkseam2.jar and seam-ext.jar into WEB-INF/lib.
+ * Disable event thread of zk by setting disable-event-thread in zk.xml
+{{{
+    <system-config>
+        <disable-event-thread />
+    </system-config>
+}}}
+ * Add a integration listener in zk.xml
+{{{
+    <listener>
+        <listener-class>com.infinitiessoft.zkseam.zk.IntegrationListener</listener-class>
+    </listener>
+}}}
+ * Disable http response compression of zkau in web.xml, set a init-param 'comparee' to false on zkLoader servlet.
+{{{
+    <servlet>
+        <description>ZK loader for ZUML pages</description>
+        <servlet-name>zkLoader</servlet-name>
+        <servlet-class>org.zkoss.zk.ui.http.DHtmlLayoutServlet</servlet-class>
+        ....
+        <init-param>
+            <param-name>compress</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        ....
+    </servlet>
+}}}
+That's all, other seam integration component will be initialized automatically.

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-modules id="moduleCoreId" project-version="1.5.0">
+<wb-module deploy-name="zkseam2">
+<wb-resource deploy-path="/" source-path="/WebContent"/>
+<wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main"/>
+<wb-resource deploy-path="/WEB-INF/classes" source-path="/src/demo"/>
+<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/zkseam2/lib/war/commons-fileupload.jar">
+<dependency-type>uses</dependency-type>
+</dependent-module>
+<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/zkseam2/lib/war/seam-ext.jar">
+<dependency-type>uses</dependency-type>
+</dependent-module>
+<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/zkseam2/lib/war/zcommon.jar">
+<dependency-type>uses</dependency-type>
+</dependent-module>
+<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/zkseam2/lib/war/zcommons-el.jar">
+<dependency-type>uses</dependency-type>
+</dependent-module>
+<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/zkseam2/lib/war/zhtml.jar">
+<dependency-type>uses</dependency-type>
+</dependent-module>
+<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/zkseam2/lib/war/zk.jar">
+<dependency-type>uses</dependency-type>
+</dependent-module>
+<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/zkseam2/lib/war/zkplus.jar">
+<dependency-type>uses</dependency-type>
+</dependent-module>
+<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/zkseam2/lib/war/zul.jar">
+<dependency-type>uses</dependency-type>
+</dependent-module>
+<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/zkseam2/lib/war/zweb.jar">
+<dependency-type>uses</dependency-type>
+</dependent-module>
+<property name="java-output-path"/>
+<property name="context-root" value="zkseam2"/>
+</wb-module>
+</project-modules>

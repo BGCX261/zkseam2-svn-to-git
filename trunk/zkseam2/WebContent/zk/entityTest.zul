@@ -1,0 +1,72 @@
+<zk xmlns="http://www.zkoss.org/2005/zul">
+    <window title="My First window" border="normal">
+        <vbox>
+            <hbox>
+                
+                <button onClick='listEntity()' label="List Entity" />
+                <button onClick='insertEntity("dennis","a bad man")' label="Insert Entity" />
+                <button onClick='updateEntity()' label="Update Entity" />
+                <button onClick='deleteEntity()' label="Delete Entity" />
+                <button onClick='txTest1()' label="Transaction test1" />
+                <button onClick='txTest2()' label="Transaction test2" />
+            </hbox>
+            <textbox id="tb" multiline="true" rows="20" cols="100"  />
+        </vbox>
+        <zscript>
+        import java.util.StringBuilder;
+        import com.infinitiessoft.zkseam.DesktopConversation;
+        import org.jboss.seam.core.Conversation;
+        import com.infinitiessoft.zkseam.demo.test.UserEntity;
+        
+        
+        int i = 0;
+        
+        void insertEntity(String name,String desc){
+            UserEntity entity = new UserEntity(name+(i++),desc);
+            entityManager.persist(entity);
+            listEntity();
+        }
+        
+        void deleteEntity(){
+            List list = entityManager.createQuery("SELECT e FROM UserEntity e").getResultList();
+            if(list.size()>0){
+                entityManager.remove(list.get(0));
+            }
+            listEntity();
+        }
+        
+        void updateEntity(){
+            List list = entityManager.createQuery("SELECT e FROM UserEntity e").getResultList();
+            if(list.size()>0){
+                list.get(0).setName("Updated"+(i++));
+            }
+            listEntity();
+        }
+        
+        void listEntity(){
+            List list = entityManager.createQuery("SELECT e FROM UserEntity e").getResultList();
+            StringBuilder sb = new StringBuilder();
+            for(Object o:list){
+                UserEntity ue = (UserEntity)o;
+                sb.append(">").append(ue.getName()).append(",").append(ue.getDescription()).append("\n");
+            }
+            tb.setValue(sb.toString());
+        }
+        
+        void txTest1(){
+            UserEntity entity = new UserEntity("Tx "+(i++),"");
+            entityManager.persist(entity);
+            listEntity();
+            throw new RuntimeException("a purposed exception 1");
+        }
+        void txTest2(){
+            UserEntity entity = new UserEntity("Tx "+(i++),"");
+            entityManager.persist(entity);
+            entityManager.flush();
+            throw new RuntimeException("a purposed exception 2");
+            
+        }
+        
+        </zscript>
+    </window>
+</zk>

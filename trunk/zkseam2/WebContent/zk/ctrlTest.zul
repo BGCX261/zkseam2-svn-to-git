@@ -1,0 +1,10 @@
+<zk xmlns="http://www.zkoss.org/2005/zul">
+    <window id="win" title="My First window" border="normal">
+        <vbox>
+            <hbox>
+                <button id="btn" onClick='winCtrl.add()' label="Click me" />
+            </hbox>
+            <textbox id="tb" multiline="true" rows="20" cols="100"  />
+        </vbox>
+    </window>
+</zk>

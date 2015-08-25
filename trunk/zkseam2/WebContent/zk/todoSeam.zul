@@ -1,0 +1,32 @@
+<?init class="org.zkoss.zkplus.databind.AnnotateDataBinderInit"?>
+<?init class="com.infinitiessoft.zkseam.zk.AnnotateActionBinderInit"?>
+<zk xmlns="http://www.zkoss.org/2005/zul">
+    <window id="win" title="${messages['TodoTitle']}" width="800px" border="normal">
+        <listbox id="box" multiple="true" rows="10"
+            model="@{todoCtrl.allEvents, load-after='add.onClick, delete.onClick, update.onClick'}" selectedItem="@{todoCtrl.current}">
+            <listhead>
+                <listheader label="${messages['Item']}" />
+                <listheader label="${messages['Priority']}" width="50px" />
+                <listheader label="${messages['Date']}" width="90px" />
+            </listhead>
+            <listitem self="@{each='event'}" value="@{event}">
+                <listcell label="@{event.name}" />
+                <listcell label="@{event.priority}" />
+                <listcell label="@{event.date}" />
+            </listitem>
+        </listbox>
+        <groupbox>
+            <caption label="${messages['Event']}" />
+            ${messages['Item']}:
+            <textbox id="name" cols="25" value="@{todoCtrl.current.name, save-when='add.onClick, update.onClick'}" />
+            ${messages['Priority']}:
+            <intbox id="priority" cols="1" value="@{todoCtrl.current.priority, save-when='add.onClick, update.onClick'}" />
+            ${messages['Date']}:
+            <datebox id="date" cols="8" value="@{todoCtrl.current.date, save-when='add.onClick, update.onClick'}" />
+            <button id="add" label="${messages['btn.Add']}" width="4em" height="2em" onClick="@{action(todoCtrl.addEvent)}" />
+            <button id="update" label="${messages['btn.Update']}" width="5em" height="2em" onClick="@{action(todoCtrl.updateEvent)}" />
+            <button id="delete" label="${messages['btn.Delete']}" width="5em" height="2em" onClick="@{action(todoCtrl.deleteEvent)}" />
+        </groupbox>
+        	
+    </window>
+</zk>
